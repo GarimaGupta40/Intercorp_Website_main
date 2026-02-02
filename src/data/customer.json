@@ -1,0 +1,95 @@
+[
+  {
+    "email": "lakshita@gmail.com",
+    "name": "Lakshita Gupta",
+    "phone": "+919779558778",
+    "lastOrder": "2026-01-30T10:45:05.168Z",
+    "totalOrders": 1,
+    "orderHistory": [
+      {
+        "id": "ORD-0C3AZ0",
+        "date": "2026-01-30T10:45:05.168Z",
+        "total": 3817,
+        "status": "Pending"
+      }
+    ]
+  },
+  {
+    "email": "shray@gmail.com",
+    "name": "Shray",
+    "phone": "9654782136",
+    "lastOrder": "2026-02-01T06:41:25.280Z",
+    "totalOrders": 2,
+    "orderHistory": [
+      {
+        "id": "ORD-HH9XPJ",
+        "date": "2026-02-01T06:41:25.280Z",
+        "total": 2115.65,
+        "status": "Pending"
+      },
+      {
+        "id": "ORD-X4WH4M",
+        "date": "2026-02-01T05:46:17.404Z",
+        "total": 5477,
+        "status": "Pending"
+      }
+    ]
+  },
+  {
+    "email": "anmol@gmail.com",
+    "name": "anmol",
+    "joinedAt": "2026-02-01T06:44:48.077Z",
+    "totalOrders": 2,
+    "orderHistory": [
+      {
+        "id": "ORD-G7XZXZ",
+        "date": "2026-02-01T08:04:57.308Z",
+        "total": 2904,
+        "status": "Pending"
+      },
+      {
+        "id": "ORD-LXQWSL",
+        "date": "2026-02-01T06:53:27.820Z",
+        "total": 3568,
+        "status": "Pending"
+      }
+    ],
+    "lastOrder": "2026-02-01T08:04:57.308Z"
+  },
+  {
+    "email": "bhumika@gmail.com",
+    "name": "bhumika",
+    "joinedAt": "2026-02-01T07:01:06.907Z",
+    "totalOrders": 0,
+    "orderHistory": []
+  },
+  {
+    "email": "lakshitagupta@gmail.com",
+    "name": "lakshitagupta",
+    "joinedAt": "2026-02-01T07:35:16.794Z",
+    "totalOrders": 0,
+    "orderHistory": []
+  },
+  {
+    "email": "garimagupta112003@gmail.com",
+    "name": "garimagupta112003",
+    "joinedAt": "2026-02-01T16:04:39.785Z",
+    "totalOrders": 0,
+    "orderHistory": []
+  },
+  {
+    "email": "mridul@gmail.com",
+    "name": "mridul",
+    "joinedAt": "2026-02-01T16:30:21.714Z",
+    "totalOrders": 1,
+    "orderHistory": [
+      {
+        "id": "ORD-O3XL51",
+        "date": "2026-02-01T16:30:50.833Z",
+        "total": 1659,
+        "status": "Pending"
+      }
+    ],
+    "lastOrder": "2026-02-01T16:30:50.833Z"
+  }
+]

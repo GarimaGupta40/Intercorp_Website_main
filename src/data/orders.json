@@ -1,0 +1,193 @@
+[
+  {
+    "id": "ORD-O3XL51",
+    "customerName": "Mridul Gupta",
+    "email": "mridul@gmail.com",
+    "phone": "9744569321",
+    "address": "455, 36, Gali Dinanagar, Gurdaspur, Punjab, India",
+    "pincode": "143531",
+    "items": [
+      {
+        "productId": "omega3-1",
+        "name": "Omega-3 Supplement",
+        "quantity": 1,
+        "price": 1659,
+        "image": "/images/products/product-3.jpg"
+      }
+    ],
+    "total": 1659,
+    "discount": 0,
+    "paymentMethod": "Cash on Delivery",
+    "status": "Pending",
+    "date": "2026-02-01T16:30:50.833Z"
+  },
+  {
+    "id": "ORD-G7XZXZ",
+    "customerName": "Anmol",
+    "email": "anmol@gmail.com",
+    "phone": "6988744523",
+    "address": "142, 456, Gurdaspur, Punjab, India",
+    "pincode": "1452236",
+    "items": [
+      {
+        "productId": "protein-pwd-1",
+        "name": "Plant-Based Protein Powder",
+        "quantity": 1,
+        "price": 2904,
+        "image": "/images/products/product-2.jpg"
+      }
+    ],
+    "total": 2904,
+    "discount": 0,
+    "paymentMethod": "Cash on Delivery",
+    "status": "Pending",
+    "date": "2026-02-01T08:04:57.308Z"
+  },
+  {
+    "id": "ORD-LXQWSL",
+    "customerName": "Anmol",
+    "email": "anmol@gmail.com",
+    "phone": "5478963312",
+    "address": "587, Chhatti Gali Dinanagar, Gurdaspur, Punjab, India",
+    "pincode": "143531",
+    "items": [
+      {
+        "productId": "fish-feed-20",
+        "name": "Fish Feed Aquaculture 20kg",
+        "quantity": 1,
+        "price": 3568,
+        "image": "/images/products/product-6.jpg"
+      }
+    ],
+    "total": 3568,
+    "discount": 0,
+    "paymentMethod": "Cash on Delivery",
+    "status": "Pending",
+    "date": "2026-02-01T06:53:27.820Z"
+  },
+  {
+    "id": "ORD-HH9XPJ",
+    "customerName": "Shray Rathi",
+    "email": "shray@gmail.com",
+    "phone": "987441136",
+    "address": "142, 145, B block, Meerut, UP, India",
+    "pincode": "1455632",
+    "items": [
+      {
+        "productId": "probiotic-caps",
+        "name": "Probiotic Capsules",
+        "quantity": 1,
+        "price": 2489,
+        "image": "/images/products/product-8.jpg"
+      }
+    ],
+    "total": 2115.65,
+    "discount": 373.34999999999997,
+    "paymentMethod": "Cash on Delivery",
+    "status": "Pending",
+    "date": "2026-02-01T06:41:25.280Z"
+  },
+  {
+    "id": "ORD-X4WH4M",
+    "customerName": "Shray",
+    "email": "shray@gmail.com",
+    "phone": "9654782136",
+    "address": "587, 145, B block, Meerut, UP, India",
+    "pincode": "142369",
+    "items": [
+      {
+        "productId": "cattle-feed-50",
+        "name": "Cattle Feed Advanced 50kg",
+        "quantity": 1,
+        "price": 5477,
+        "image": "/images/products/product-5.jpg"
+      }
+    ],
+    "total": 5477,
+    "discount": 0,
+    "paymentMethod": "Cash on Delivery",
+    "status": "Processing",
+    "date": "2026-02-01T05:46:17.404Z"
+  },
+  {
+    "id": "ORD-0C3AZ0",
+    "customerName": "Lakshita Gupta",
+    "email": "lakshita@gmail.com",
+    "phone": "+919779558778",
+    "address": "698, Chhatti Gali Dinanagar, Gurdaspur, Punjab, India",
+    "pincode": "143531",
+    "items": [
+      {
+        "productId": "broiler-feed-25",
+        "name": "Broiler Feed Premium 25kg",
+        "quantity": 1,
+        "price": 3817,
+        "image": "/images/products/product-4.jpg"
+      }
+    ],
+    "total": 3817,
+    "discount": 0,
+    "paymentMethod": "Cash on Delivery",
+    "status": "Pending",
+    "date": "2026-01-30T10:45:05.168Z"
+  },
+  {
+    "id": "ORD-VYSR52",
+    "customerName": "Ishan Gupta",
+    "email": "ishan@gmail.com",
+    "phone": "+919779558778",
+    "address": "145, Chhatti Gali Dinanagar, Gurdaspur, Punjab, India",
+    "pincode": "143531",
+    "items": [
+      {
+        "productId": "protein-pwd-1",
+        "name": "Plant-Based Protein Powder",
+        "quantity": 1,
+        "price": 2904,
+        "image": "/images/products/product-2.jpg"
+      }
+    ],
+    "total": 2904,
+    "discount": 0,
+    "paymentMethod": "Cash on Delivery",
+    "status": "Pending",
+    "date": "2026-01-30T10:38:41.358Z"
+  },
+  {
+    "id": "ORD-RU6ODZ",
+    "customerName": "Ishan",
+    "email": "ishan@gmail.com",
+    "phone": "+919779558778",
+    "address": "456, Chhatti Gali Dinanagar, Gurdaspur, Punjab, India",
+    "pincode": "143531",
+    "items": [
+      {
+        "productId": "omega3-1",
+        "name": "Omega-3 Supplement",
+        "quantity": 1,
+        "price": 1659,
+        "image": "/images/products/product-3.jpg"
+      }
+    ],
+    "total": 1659,
+    "discount": 0,
+    "paymentMethod": "Cash on Delivery",
+    "status": "Pending",
+    "date": "2026-01-30T10:38:13.680Z"
+  },
+  {
+    "orderId": "ORD-12345",
+    "userId": "u1",
+    "products": [
+      {
+        "productId": "vit-complex-1",
+        "name": "Vitamin Complex",
+        "price": 24.99,
+        "quantity": 1
+      }
+    ],
+    "paymentMethod": "COD",
+    "status": "Shipped",
+    "date": "2026-01-15T10:30:00Z"
+  }
+]

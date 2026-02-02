@@ -1,0 +1,90 @@
+[
+  {
+    "id": "vit-complex-1",
+    "name": "Vitamin Complex",
+    "category": "human-nutrition",
+    "price": 2074,
+    "image": "/images/products/product-1.jpg",
+    "description": "Complete multivitamin formula with essential nutrients. Supports immune system and daily energy levels.",
+    "rating": 4.8,
+    "stock": 150,
+    "expiryDate": "2026-12-31"
+  },
+  {
+    "id": "protein-pwd-1",
+    "name": "Plant-Based Protein Powder",
+    "category": "human-nutrition",
+    "price": 2904,
+    "image": "/images/products/product-2.jpg",
+    "description": "Premium plant-based protein for active lifestyles. Easy to digest and great tasting.",
+    "rating": 4.7,
+    "stock": 84,
+    "expiryDate": "2026-06-15"
+  },
+  {
+    "id": "omega3-1",
+    "name": "Omega-3 Supplement",
+    "category": "human-nutrition",
+    "price": 1659,
+    "image": "/images/products/product-3.jpg",
+    "description": "Heart-healthy omega-3 fatty acids from natural sources.",
+    "rating": 4.9,
+    "stock": 199,
+    "expiryDate": "2027-01-20"
+  },
+  {
+    "id": "broiler-feed-25",
+    "name": "Broiler Feed Premium 25kg",
+    "category": "animal-nutrition",
+    "price": 3817,
+    "image": "/images/products/product-4.jpg",
+    "description": "Optimized nutrition for broiler chicken production. Fast growth and high efficiency.",
+    "rating": 4.6,
+    "stock": 49,
+    "expiryDate": "2026-08-10"
+  },
+  {
+    "id": "cattle-feed-50",
+    "name": "Cattle Feed Advanced 50kg",
+    "category": "animal-nutrition",
+    "price": 5477,
+    "image": "/images/products/product-5.jpg",
+    "description": "Complete feed solution for beef and dairy cattle.",
+    "rating": 4.7,
+    "stock": 4,
+    "expiryDate": "2026-05-30"
+  },
+  {
+    "id": "fish-feed-20",
+    "name": "Fish Feed Aquaculture 20kg",
+    "category": "animal-nutrition",
+    "price": 3568,
+    "image": "/images/products/product-6.jpg",
+    "description": "Specialized nutrition for sustainable fish farming.",
+    "rating": 4.8,
+    "stock": 44,
+    "expiryDate": "2026-09-22"
+  },
+  {
+    "id": "energy-bars-box",
+    "name": "Energy Bar Box (12 pcs)",
+    "category": "consumer-products",
+    "price": 1908,
+    "image": "/images/products/product-7.jpg",
+    "description": "Nutritious energy bars for on-the-go snacking.",
+    "rating": 4.5,
+    "stock": 8,
+    "expiryDate": "2026-03-12"
+  },
+  {
+    "id": "probiotic-caps",
+    "name": "Probiotic Capsules",
+    "category": "consumer-products",
+    "price": 2489,
+    "image": "/images/products/product-8.jpg",
+    "description": "Advanced digestive health support formula.",
+    "rating": 4.8,
+    "stock": 89,
+    "expiryDate": "2027-02-28"
+  }
+]
