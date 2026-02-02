@@ -1,12 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import pool from './db/db.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors({
@@ -15,17 +9,11 @@ app.use(cors({
 }));
 app.use(express.json());
 
-const DATA_DIR = path.join(__dirname, 'src/data');
-
-const getFilePath = (filename) => {
-  if (!filename.endsWith('.json')) filename += '.json';
-  return path.join(DATA_DIR, filename);
-};
 
 app.get('/api/:file', async (req, res) => {
   try {
     const fileName = req.params.file;
-    
+
     // Database-backed routes
     if (fileName === 'orders') {
       const [rows] = await pool.execute('SELECT * FROM orders');
@@ -35,7 +23,7 @@ app.get('/api/:file', async (req, res) => {
       }));
       return res.json(formattedRows);
     }
-    
+
     if (fileName === 'products') {
       const [rows] = await pool.execute('SELECT * FROM products');
       return res.json(rows);
@@ -70,10 +58,22 @@ app.get('/api/:file', async (req, res) => {
       return res.json(rows);
     }
 
-    const filePath = getFilePath(fileName);
-    const data = await fs.readFile(filePath, 'utf-8');
-    res.set('Cache-Control', 'no-cache');
-    res.json(JSON.parse(data));
+    if (fileName === 'cart') {
+      // Return cart items joined with product details; using a single global cart (userId = 'global') to preserve current behavior
+      const [rows] = await pool.execute(
+        `SELECT c.productId as id, c.quantity, p.name, p.category, p.price, p.image, p.description, p.rating, p.stock
+         FROM cart c JOIN products p ON p.id = c.productId WHERE c.userId = ?`, ['global']
+      );
+      return res.json(rows.map(r => ({ id: r.id, name: r.name, category: r.category, price: Number(r.price), image: r.image, description: r.description, rating: Number(r.rating), stock: r.stock, quantity: r.quantity })));
+    }
+
+    if (fileName === 'wishlist') {
+      // Return array of product IDs in wishlist for the global user
+      const [rows] = await pool.execute('SELECT productId FROM wishlist WHERE userId = ?', ['global']);
+      return res.json(rows.map(r => r.productId));
+    }
+
+    return res.status(404).json({ error: 'Data not found' });
   } catch (error) {
     console.error(`Error fetching ${req.params.file}:`, error);
     res.status(404).json({ error: 'Data not found' });
@@ -86,6 +86,32 @@ app.post('/api/:file', async (req, res) => {
     const data = req.body;
 
     if (fileName === 'orders') {
+      if (Array.isArray(data)) {
+        // Upsert each order
+        for (const o of data) {
+          await pool.execute(
+            `INSERT INTO orders (id, customerName, email, phone, address, pincode, items, total, discount, paymentMethod, status, date)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE customerName=VALUES(customerName), phone=VALUES(phone), address=VALUES(address), pincode=VALUES(pincode), items=VALUES(items), total=VALUES(total), discount=VALUES(discount), paymentMethod=VALUES(paymentMethod), status=VALUES(status), date=VALUES(date)`,
+            [
+              o.id || o.orderId,
+              o.customerName || '',
+              o.email || '',
+              o.phone || '',
+              o.address || '',
+              o.pincode || '',
+              JSON.stringify(o.items || o.products || []),
+              o.total || 0,
+              o.discount || 0,
+              o.paymentMethod || '',
+              o.status || 'Pending',
+              o.date || new Date().toISOString()
+            ]
+          );
+        }
+        return res.json({ success: true });
+      }
+
       const [result] = await pool.execute(
         `INSERT INTO orders (id, customerName, email, phone, address, pincode, items, total, discount, paymentMethod, status, date) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -108,36 +134,117 @@ app.post('/api/:file', async (req, res) => {
     }
 
     if (fileName === 'reviews') {
-      await pool.execute(
-        `INSERT INTO reviews (reviewId, productId, userId, userName, rating, comment, date)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [data.reviewId, data.productId, data.userId, data.userName, data.rating, data.comment, data.date]
-      );
-      return res.json({ success: true });
-    }
-
-    if (fileName === 'customer') {
-      // Bulk update customers from JSON file sync or single update
       if (Array.isArray(data)) {
-        for (const cust of data) {
+        for (const r of data) {
           await pool.execute(
-            `INSERT INTO customers (email, name, phone, joinedAt, lastOrder, totalOrders, orderHistory)
+            `INSERT INTO reviews (reviewId, productId, userId, userName, rating, comment, date)
              VALUES (?, ?, ?, ?, ?, ?, ?)
-             ON DUPLICATE KEY UPDATE 
-             name = VALUES(name), phone = VALUES(phone), lastOrder = VALUES(lastOrder), 
-             totalOrders = VALUES(totalOrders), orderHistory = VALUES(orderHistory)`,
-            [cust.email, cust.name, cust.phone || '', cust.joinedAt || null, cust.lastOrder || null, cust.totalOrders || 0, JSON.stringify(cust.orderHistory || [])]
+             ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment), date = VALUES(date)`,
+            [r.reviewId, r.productId, r.userId, r.userName, r.rating, r.comment, r.date]
           );
         }
+      } else {
+        await pool.execute(
+          `INSERT INTO reviews (reviewId, productId, userId, userName, rating, comment, date)
+           VALUES (?, ?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment), date = VALUES(date)`,
+          [data.reviewId, data.productId, data.userId, data.userName, data.rating, data.comment, data.date]
+        );
       }
       return res.json({ success: true });
     }
 
-    const filePath = getFilePath(fileName);
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2));
-    res.set('Cache-Control', 'no-cache');
-    res.json({ success: true });
+    if (fileName === 'customer') {
+      // Bulk update customers from array or single update
+      const arr = Array.isArray(data) ? data : [data];
+      for (const cust of arr) {
+        await pool.execute(
+          `INSERT INTO customers (email, name, phone, joinedAt, lastOrder, totalOrders, orderHistory)
+           VALUES (?, ?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE 
+           name = VALUES(name), phone = VALUES(phone), lastOrder = VALUES(lastOrder), 
+           totalOrders = VALUES(totalOrders), orderHistory = VALUES(orderHistory)`,
+          [cust.email, cust.name, cust.phone || '', cust.joinedAt || null, cust.lastOrder || null, cust.totalOrders || 0, JSON.stringify(cust.orderHistory || [])]
+        );
+      }
+      return res.json({ success: true });
+    }
+
+    if (fileName === 'users') {
+      const arr = Array.isArray(data) ? data : [data];
+      for (const u of arr) {
+        await pool.execute(
+          `INSERT INTO users (id, name, email, password, role, createdAt)
+           VALUES (?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE name = VALUES(name), password = VALUES(password), role = VALUES(role), createdAt = VALUES(createdAt)`,
+          [u.id || null, u.name || null, u.email, u.password || null, u.role || 'user', u.createdAt || new Date().toISOString()]
+        );
+      }
+      return res.json({ success: true });
+    }
+
+    if (fileName === 'products') {
+      const arr = Array.isArray(data) ? data : [data];
+      for (const p of arr) {
+        await pool.execute(
+          `INSERT INTO products (id, name, category, price, stock, expiryDate, image, description, rating, addedBy, addedAt, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE name = VALUES(name), category = VALUES(category), price = VALUES(price), stock = VALUES(stock), expiryDate = VALUES(expiryDate), image = VALUES(image), description = VALUES(description), rating = VALUES(rating), status = VALUES(status)`,
+          [p.id, p.name, p.category, p.price || 0, p.stock || 0, p.expiryDate || null, p.image || null, p.description || null, p.rating || 5.0, p.addedBy || null, p.addedAt || null, p.status || 'active']
+        );
+      }
+      return res.json({ success: true });
+    }
+
+    if (fileName === 'cart') {
+      if (!Array.isArray(data)) return res.status(400).json({ error: 'Expected array' });
+      // Using a single "global" cart to preserve current behavior
+      await pool.execute('DELETE FROM cart WHERE userId = ?', ['global']);
+      for (const item of data) {
+        await pool.execute(
+          `INSERT INTO cart (userId, productId, quantity) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE quantity = VALUES(quantity)`,
+          ['global', item.id, item.quantity || 1]
+        );
+      }
+      return res.json({ success: true });
+    }
+
+    if (fileName === 'wishlist') {
+      if (!Array.isArray(data)) return res.status(400).json({ error: 'Expected array' });
+      await pool.execute('DELETE FROM wishlist WHERE userId = ?', ['global']);
+      for (const pid of data) {
+        await pool.execute(`INSERT INTO wishlist (userId, productId) VALUES (?, ?) ON DUPLICATE KEY UPDATE addedAt = NOW()`, ['global', pid]);
+      }
+      return res.json({ success: true });
+    }
+
+    if (fileName === 'admin_notifications') {
+      const arr = Array.isArray(data) ? data : [data];
+      for (const n of arr) {
+        await pool.execute(
+          `INSERT INTO admin_notifications (id, type, message, timestamp, ` + "`read`" + `) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE message = VALUES(message), timestamp = VALUES(timestamp), ` + "`read`" + ` = VALUES(` + "`read`" + `)`,
+          [n.id, n.type, n.message, n.timestamp || new Date().toISOString(), n.read ? 1 : 0]
+        );
+      }
+      return res.json({ success: true });
+    }
+
+    if (fileName === 'admin_activity') {
+      const arr = Array.isArray(data) ? data : [data];
+      for (const a of arr) {
+        await pool.execute(
+          `INSERT INTO admin_activity (id, type, message, timestamp, icon) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE message = VALUES(message), timestamp = VALUES(timestamp), icon = VALUES(icon)`,
+          [a.id, a.type, a.message, a.timestamp || new Date().toISOString(), a.icon || null]
+        );
+      }
+      return res.json({ success: true });
+    }
+
+    if (fileName === 'buy') {
+      // buy-now metadata is handled client-side (localStorage); accept requests for compatibility
+      return res.json({ success: true });
+    }
+    return res.status(400).json({ error: 'Unknown data target' });
   } catch (error) {
     console.error(`Error saving ${req.params.file}:`, error);
     res.status(500).json({ error: 'Failed to save data' });
@@ -187,50 +294,11 @@ app.post('/api/admin/add-product', async (req, res) => {
       );
     } catch (dbError) {
       console.error('MySQL Product Insert Error:', dbError);
-      // Fallback to JSON if DB fails during migration period
+      // DB failed — do not fallback to file writes anymore
+      return res.status(500).json({ error: 'Failed to add product to database' });
     }
 
-    const addedProductsPath = getFilePath('added_products');
-    const productsPath = getFilePath('products');
-
-    let addedProducts = [];
-    try {
-      const data = await fs.readFile(addedProductsPath, 'utf-8');
-      addedProducts = JSON.parse(data);
-    } catch (e) {
-      addedProducts = [];
-    }
-    addedProducts.push(extendedProduct);
-    await fs.writeFile(addedProductsPath, JSON.stringify(addedProducts, null, 2));
-
-    let products = [];
-    try {
-      const data = await fs.readFile(productsPath, 'utf-8');
-      products = JSON.parse(data);
-    } catch (e) {
-      products = [];
-    }
-    
-    const existingIndex = products.findIndex(p => p.id === product.id);
-    const productForMain = {
-      id: product.id,
-      name: product.name,
-      category: product.category,
-      price: product.price,
-      image: product.image,
-      description: product.description,
-      rating: product.rating || 5.0,
-      stock: product.stock || 0,
-      expiryDate: product.expiryDate || null
-    };
-    
-    if (existingIndex !== -1) {
-      products[existingIndex] = productForMain;
-    } else {
-      products.push(productForMain);
-    }
-    await fs.writeFile(productsPath, JSON.stringify(products, null, 2));
-
+    // No file-based persistence — product is stored in MySQL
     res.set('Cache-Control', 'no-cache');
     res.json({ success: true, product: extendedProduct });
   } catch (error) {
