@@ -2,6 +2,11 @@
 import express from 'express';
 import cors from 'cors';
 import pool from './db/db.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors({
@@ -308,7 +313,19 @@ app.post('/api/admin/add-product', async (req, res) => {
   }
 });
 
-const PORT = 5002;
+
+// Serve static frontend build (if present)
+const staticPath = path.join(__dirname, 'dist');
+console.log(`Static path: ${staticPath}`);
+app.use(express.static(staticPath));
+
+// SPA fallback to index.html for client-side routing (exclude API requests)
+app.get(/.*/, (req, res) => {
+  if (req.originalUrl.startsWith('/api')) return res.status(404).json({ error: 'Data not found' });
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+const PORT = process.env.PORT || 5002;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Backend running on http://0.0.0.0:${PORT}`);
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
