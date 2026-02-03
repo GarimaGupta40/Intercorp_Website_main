@@ -99,20 +99,6 @@ CREATE TABLE IF NOT EXISTS cart (
     FOREIGN KEY (productId) REFERENCES products(id) ON DELETE CASCADE
 );
 
---Added Products table
-CREATE TABLE added_products (
-  id VARCHAR(50) PRIMARY KEY,
-  name VARCHAR(255),
-  category VARCHAR(100),
-  price DECIMAL(10,2),
-  stock INT DEFAULT 0,
-  expiryDate DATE,
-  image VARCHAR(255),
-  description TEXT,
-  addedBy VARCHAR(50) DEFAULT 'admin',
-  addedAt DATETIME,
-  status VARCHAR(20) DEFAULT 'active'
-);
 
 
 
