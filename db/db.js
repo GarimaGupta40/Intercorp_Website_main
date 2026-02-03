@@ -44,12 +44,11 @@ function createPool() {
     database: process.env.DB_NAME,
 
     waitForConnections: true,
-    connectionLimit: 3,          // VERY important for Railway
+    connectionLimit: 3,
     queueLimit: 0,
 
     enableKeepAlive: true,
     keepAliveInitialDelay: 10000,
-
     connectTimeout: 30000
   });
 
@@ -58,20 +57,25 @@ function createPool() {
 
 createPool();
 
-// 🔁 Auto-recover if connection drops
 export async function execute(query, params = []) {
   try {
     return await pool.execute(query, params);
   } catch (err) {
-    if (err.code === "PROTOCOL_CONNECTION_LOST") {
-      console.error("♻️ MySQL connection lost. Recreating pool...");
+    const recoverableErrors = [
+      "PROTOCOL_CONNECTION_LOST",
+      "ECONNRESET",
+      "ETIMEDOUT",
+      "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR"
+    ];
+
+    if (recoverableErrors.includes(err.code)) {
+      console.error(`♻️ MySQL error (${err.code}). Recreating pool...`);
       createPool();
       return await pool.execute(query, params);
     }
+
     throw err;
   }
 }
 
-export default {
-  execute
-};
+export default { execute };
