@@ -595,16 +595,13 @@ app.post('/api/admin/add-product', async (req, res) => {
 });
 
 /* =========================
-   SERVE FRONTEND
+   SERVE FRONTEND (FIXED)
 ========================= */
 
 const staticPath = path.join(__dirname, 'dist');
 app.use(express.static(staticPath));
 
-app.get('*', (req, res) => {
-  if (req.originalUrl.startsWith('/api')) {
-    return res.status(404).json({ error: 'Not found' });
-  }
+app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(staticPath, 'index.html'));
 });
 
