@@ -15,6 +15,26 @@ app.use(cors({
 }));
 app.use(express.json());
 
+import fs from 'fs/promises';
+
+// Helper to read local JSON data as a fallback when DB is unavailable
+async function loadLocalData(file) {
+  const candidates = [
+    path.join(__dirname, 'src', 'data', `${file}.json`),
+    path.join(__dirname, 'data', `${file}.json`),
+    path.join(__dirname, 'src', 'data', `${file}.json`) // duplicate to be safe in different build layouts
+  ];
+  for (const p of candidates) {
+    try {
+      const txt = await fs.readFile(p, 'utf8');
+      return JSON.parse(txt);
+    } catch (e) {
+      // ignore read/parse errors and try next candidate
+    }
+  }
+  return null;
+}
+
 
 app.get('/api/:file', async (req, res) => {
   try {
@@ -82,6 +102,31 @@ app.get('/api/:file', async (req, res) => {
     return res.status(404).json({ error: 'Data not found' });
   } catch (error) {
     console.error(`Error fetching ${req.params.file}:`, error);
+
+    // If DB is unreachable (e.g., on Render without a managed DB), fall back to local JSON files
+    if (error && (error.code === 'ECONNREFUSED' || (error.message && error.message.includes('ECONNREFUSED')))) {
+      try {
+        const local = await loadLocalData(fileName);
+        if (local !== null) {
+          console.warn(`Falling back to local data for ${fileName}`);
+
+          // Special-case some endpoints to match previous API shape
+          if (fileName === 'cart') {
+            // local cart contains items already joined with product details in `src/data/cart.json`
+            return res.json(local);
+          }
+
+          if (fileName === 'wishlist') {
+            return res.json(local);
+          }
+
+          return res.json(local);
+        }
+      } catch (fsErr) {
+        console.error('Error reading local fallback data:', fsErr);
+      }
+    }
+
     res.status(404).json({ error: 'Data not found' });
   }
 });
@@ -325,8 +370,16 @@ app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-// Using an injected constant port instead of environment files
-const PORT = 5002;
+// Startup validation: fail early in production if required DB env vars are missing
+const requiredEnv = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_NAME'];
+const missing = requiredEnv.filter(k => !process.env[k]);
+if (missing.length && process.env.NODE_ENV === 'production') {
+  console.error(`Missing required environment variables: ${missing.join(', ')}. Aborting startup.`);
+  process.exit(1);
+}
+
+// Use Render's assigned port when present
+const PORT = process.env.PORT || 5002;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
 });

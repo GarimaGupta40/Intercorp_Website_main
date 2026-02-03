@@ -69,8 +69,6 @@ Intercorp_Website_main/
 
 ENVIRONMENT VARIABLES
 
-Create a .env file in the root directory and add the following:
-
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_USER=root
@@ -80,6 +78,42 @@ PORT=5002
 
 Note:
 Do not commit the .env file to GitHub.
+
+------------------------------------------------------------
+
+DEPLOYING ON RENDER (Quick setup) 🚀
+
+1. Create a new Web Service in Render and connect your GitHub repository.
+2. Set the **Build Command** to:
+
+   npm run build
+
+3. Set the **Start Command** to:
+
+   npm run server
+
+4. In Render's **Environment** section, add these environment variables (replace values):
+
+   - **DB_HOST**: your-render-db-host
+   - **DB_PORT**: 3306
+   - **DB_USER**: your_db_user
+   - **DB_PASSWORD**: your_db_password
+   - **DB_NAME**: intercorp1
+   - **PORT**: 5002
+
+5. (Optional) If using Render's managed MySQL, use its provided host/port/user/password.
+
+6. Deploy. The backend will connect to the MySQL instance and the server will serve the built frontend (`dist`) on the same domain.
+
+Notes:
+- We intentionally use environment variables at runtime (no .env in production). This is standard and secure on Render.
+- If the DB is unreachable, the server will attempt to serve local `src/data/*.json` as a read-only fallback.
+
+IMPORTANT: Startup validation
+- In production the server will abort startup if any required DB environment variables are missing: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_NAME`.
+- This prevents the app from returning HTML error responses that the frontend would otherwise try to parse as JSON (causing "Unexpected token '<'" errors).
+
+------------------------------------------------------------
 
 ------------------------------------------------------------
 
