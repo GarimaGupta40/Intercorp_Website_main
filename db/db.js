@@ -8,8 +8,12 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'intercorp1',
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 5,
   queueLimit: 0,
+  enableKeepAlive: true,       
+  keepAliveInitialDelay: 10000,
+
+  connectTimeout: 30000        // prevent early drop
 });
 
 // Test connection
