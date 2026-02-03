@@ -1,32 +1,77 @@
+// import mysql from "mysql2/promise";
+
+// // Use Render environment variables (or fallbacks) for DB config
+// const pool = mysql.createPool({
+//   host: process.env.DB_HOST || '127.0.0.1',
+//   port: Number(process.env.DB_PORT) || 3306,
+//   user: process.env.DB_USER || 'root',
+//   password: process.env.DB_PASSWORD || '',
+//   database: process.env.DB_NAME || 'intercorp1',
+//   waitForConnections: true,
+//   connectionLimit: 5,
+//   queueLimit: 0,
+//   enableKeepAlive: true,       
+//   keepAliveInitialDelay: 10000,
+
+//   connectTimeout: 30000        // prevent early drop
+// });
+
+// // Test connection
+// pool
+//   .getConnection()
+//   .then((conn) => {
+//     console.log("Successfully connected to MySQL database");
+//     conn.release();
+//   })
+//   .catch((err) => {
+//     console.error("Error connecting to MySQL database:", err.message);
+//   });
+
+// export default pool;
+
+
+
 import mysql from "mysql2/promise";
 
-// Use Render environment variables (or fallbacks) for DB config
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || '127.0.0.1',
-  port: Number(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'intercorp1',
-  waitForConnections: true,
-  connectionLimit: 5,
-  queueLimit: 0,
-  enableKeepAlive: true,       
-  keepAliveInitialDelay: 10000,
+let pool;
 
-  connectTimeout: 30000        // prevent early drop
-});
+function createPool() {
+  pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
 
-// Test connection
-pool
-  .getConnection()
-  .then((conn) => {
-    console.log("Successfully connected to MySQL database");
-    conn.release();
-  })
-  .catch((err) => {
-    console.error("Error connecting to MySQL database:", err.message);
+    waitForConnections: true,
+    connectionLimit: 3,          // VERY important for Railway
+    queueLimit: 0,
+
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 10000,
+
+    connectTimeout: 30000
   });
 
-export default pool;
+  console.log("🔄 MySQL pool created");
+}
 
+createPool();
 
+// 🔁 Auto-recover if connection drops
+export async function execute(query, params = []) {
+  try {
+    return await pool.execute(query, params);
+  } catch (err) {
+    if (err.code === "PROTOCOL_CONNECTION_LOST") {
+      console.error("♻️ MySQL connection lost. Recreating pool...");
+      createPool();
+      return await pool.execute(query, params);
+    }
+    throw err;
+  }
+}
+
+export default {
+  execute
+};
