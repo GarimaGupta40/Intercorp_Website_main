@@ -1,20 +1,18 @@
 import mysql from "mysql2/promise";
-import express from 'express';
 
-// Use Render environment variables (or fallbacks) for DB config
+// Use Render/Replit environment variables (or fallbacks for local XAMPP) for DB config
 const pool = mysql.createPool({
-  host:  '127.0.0.1',
-  port: 3306,
-  user:  'root',
-  password: '',
-  database: 'intercorp1',
+  host: process.env.DB_HOST || '127.0.0.1',
+  port: process.env.DB_PORT || 3306,
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'intercorp1',
   waitForConnections: true,
   connectionLimit: 5,
   queueLimit: 0,
   enableKeepAlive: true,       
   keepAliveInitialDelay: 10000,
-
-  connectTimeout: 30000        // prevent early drop
+  connectTimeout: 30000
 });
 
 // Test connection

@@ -100,19 +100,7 @@ app.get('/api/:file', async (req, res) => {
     return res.status(404).json({ error: 'Data not found' });
   } catch (error) {
     console.error(`Error fetching ${fileName}:`, error);
-
-    // If DB is unreachable, fall back to local JSON files
-    try {
-      const local = await loadLocalData(fileName);
-      if (local !== null) {
-        console.warn(`Falling back to local data for ${fileName}`);
-        return res.json(local);
-      }
-    } catch (fsErr) {
-      console.error('Error reading local fallback data:', fsErr);
-    }
-
-    res.status(404).json({ error: 'Data not found' });
+    res.status(500).json({ error: 'Database error' });
   }
 });
 
