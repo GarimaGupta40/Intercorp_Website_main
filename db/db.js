@@ -1,31 +1,30 @@
 import mysql from "mysql2/promise";
 
-// Use Render/Replit environment variables (or fallbacks for local XAMPP) for DB config
+const isProduction = process.env.DB_HOST !== undefined;
+
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || '127.0.0.1',
-  port: process.env.DB_PORT || 3306,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'intercorp1',
+  host: isProduction ? process.env.DB_HOST : '127.0.0.1',
+  port: isProduction ? process.env.DB_PORT : 3306,
+  user: isProduction ? process.env.DB_USER : 'root',
+  password: isProduction ? process.env.DB_PASSWORD : '',
+  database: isProduction ? process.env.DB_NAME : 'intercorp1',
+
   waitForConnections: true,
   connectionLimit: 5,
   queueLimit: 0,
-  enableKeepAlive: true,       
-  keepAliveInitialDelay: 10000,
-  connectTimeout: 30000
+
+  // REQUIRED for Railway / cloud MySQL
+  ssl: isProduction ? { rejectUnauthorized: false } : undefined
 });
 
 // Test connection
-pool
-  .getConnection()
-  .then((conn) => {
-    console.log("Successfully connected to MySQL database");
+pool.getConnection()
+  .then(conn => {
+    console.log("Connected to:", isProduction ? "RAILWAY DB" : "LOCAL DB");
     conn.release();
   })
-  .catch((err) => {
-    console.error("Error connecting to MySQL database:", err.message);
+  .catch(err => {
+    console.error("MySQL Connection Failed:", err.message);
   });
 
 export default pool;
-
-
