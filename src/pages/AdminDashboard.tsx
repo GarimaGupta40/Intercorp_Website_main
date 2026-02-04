@@ -515,7 +515,7 @@ export default function AdminDashboard() {
 
   const totalRevenue = useMemo(() => {
     if (!orders || !Array.isArray(orders)) return 0;
-    return orders.reduce((sum, order) => sum + (order?.total || 0), 0);
+    return orders.reduce((sum, order) => sum + Number(order?.total || 0), 0);
   }, [orders]);
   const totalOrders = Array.isArray(orders) ? orders.length : 0;
   const activeCustomers = useMemo(() => {
