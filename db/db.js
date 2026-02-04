@@ -1,4 +1,5 @@
 import mysql from "mysql2/promise";
+import express from 'express';
 
 // Use Render environment variables (or fallbacks) for DB config
 const pool = mysql.createPool({
@@ -28,4 +29,5 @@ pool
   });
 
 export default pool;
+
 
