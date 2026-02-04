@@ -1,6 +1,8 @@
 Intercorp Website 🌐
-A Web Application using Node.js, Express, MySQL, and Vite
+A web application built using Node.js, Express, MySQL and Vite with cloud deployment on Render + Railway.
 
+🔗 Live Website:
+https://intercorp-website-main.onrender.com/
 ------------------------------------------------------------
 
 PROJECT OVERVIEW
@@ -13,42 +15,39 @@ fully migrated to MySQL to improve scalability, data consistency, and reliabilit
 
 ------------------------------------------------------------
 
-TECH STACK
-
+🧰 Tech Stack
 Frontend
-- HTML
-- CSS
-- JavaScript
-- Vite
+HTML
+CSS
+JavaScript
+Vite
 
 Backend
-- Node.js
-- Express.js
-- MySQL
-- mysql2 (promise-based)
-
+Node.js
+Express.js
+mysql2 (Promise based)
 Database
-- MySQL
-- phpMyAdmin
+MySQL (Railway Cloud)
 
 Tools
-- Git
-- GitHub
-- XAMPP (Local MySQL)
+Git & GitHub
+Render (Deployment)
+Railway (Database Hosting)
 
 ------------------------------------------------------------
 
-FEATURES
+✨ Features
 
-- Product management
-- User management
-- Cart functionality
-- Wishlist functionality
-- Order management
-- Admin activity and notifications
-- RESTful APIs
-- Persistent MySQL-based storage
-- JSON file storage completely removed
+Product listing & category filtering
+User accounts
+Cart system (persistent)
+Wishlist system
+Order placement
+Admin activity logs
+Admin notifications
+REST APIs
+Cloud database storage
+Fully deployed full-stack app JSON file storage completely removed
 
 ------------------------------------------------------------
 
@@ -64,20 +63,6 @@ Intercorp_Website_main/
 ├── index.html            Frontend entry file
 ├── package.json
 ├── README.md
-
-------------------------------------------------------------
-
-ENVIRONMENT VARIABLES
-
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=intercorp1
-PORT=5002
-
-Note:
-Do not commit the .env file to GitHub.
 
 ------------------------------------------------------------
 
