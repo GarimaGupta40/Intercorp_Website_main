@@ -36,9 +36,8 @@ async function loadLocalData(file) {
 
 
 app.get('/api/:file', async (req, res) => {
+  const fileName = req.params.file;
   try {
-    const fileName = req.params.file;
-
     // Database-backed routes
     if (fileName === 'orders') {
       const [rows] = await pool.execute('SELECT * FROM orders');
@@ -100,30 +99,17 @@ app.get('/api/:file', async (req, res) => {
 
     return res.status(404).json({ error: 'Data not found' });
   } catch (error) {
-    console.error(`Error fetching ${req.params.file}:`, error);
+    console.error(`Error fetching ${fileName}:`, error);
 
-    // If DB is unreachable (e.g., on Render without a managed DB), fall back to local JSON files
-    if (error && (error.code === 'ECONNREFUSED' || (error.message && error.message.includes('ECONNREFUSED')))) {
-      try {
-        const local = await loadLocalData(fileName);
-        if (local !== null) {
-          console.warn(`Falling back to local data for ${fileName}`);
-
-          // Special-case some endpoints to match previous API shape
-          if (fileName === 'cart') {
-            // local cart contains items already joined with product details in `src/data/cart.json`
-            return res.json(local);
-          }
-
-          if (fileName === 'wishlist') {
-            return res.json(local);
-          }
-
-          return res.json(local);
-        }
-      } catch (fsErr) {
-        console.error('Error reading local fallback data:', fsErr);
+    // If DB is unreachable, fall back to local JSON files
+    try {
+      const local = await loadLocalData(fileName);
+      if (local !== null) {
+        console.warn(`Falling back to local data for ${fileName}`);
+        return res.json(local);
       }
+    } catch (fsErr) {
+      console.error('Error reading local fallback data:', fsErr);
     }
 
     res.status(404).json({ error: 'Data not found' });
@@ -374,7 +360,7 @@ app.get(/.*/, (req, res) => {
 
 // Use Render's assigned port when present
 const PORT = process.env.PORT || 5002;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
+app.listen(PORT, '127.0.0.1', () => {
+  console.log(`Server running on http://127.0.0.1:${PORT}`);
 });
 
