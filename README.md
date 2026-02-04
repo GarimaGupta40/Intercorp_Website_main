@@ -110,8 +110,8 @@ Notes:
 - If the DB is unreachable, the server will attempt to serve local `src/data/*.json` as a read-only fallback.
 
 IMPORTANT: Startup validation
-- In production the server will abort startup if any required DB environment variables are missing: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_NAME`.
-- This prevents the app from returning HTML error responses that the frontend would otherwise try to parse as JSON (causing "Unexpected token '<'" errors).
+- The server will not abort startup when DB environment variables are missing. Local MySQL credentials (host: `127.0.0.1`, port: `3306`, user: `root`, password: ``, database: `intercorp1`) are used by default for local development.
+- For production or custom deployments, set `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` as needed; the server will still start even if they are not provided.
 
 ------------------------------------------------------------
 
@@ -155,8 +155,8 @@ GET  /api/wishlist
 
 SECURITY NOTES
 
-- Database credentials are handled using environment variables
-- No sensitive data is hardcoded
+- By default this project uses local MySQL credentials for development (host: `127.0.0.1`, user: `root`, password: ``, database: `intercorp1`).
+- You can override these by setting DB_* environment variables in production; the server will still start without them.
 - MySQL is the single source of truth
 
 ------------------------------------------------------------

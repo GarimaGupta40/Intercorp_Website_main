@@ -369,13 +369,8 @@ app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-// Startup validation: fail early in production if required DB env vars are missing
-const requiredEnv = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_NAME'];
-const missing = requiredEnv.filter(k => !process.env[k]);
-if (missing.length && process.env.NODE_ENV === 'production') {
-  console.error(`Missing required environment variables: ${missing.join(', ')}. Aborting startup.`);
-  process.exit(1);
-}
+// Environment variables for DB are optional; server will start even if they are missing.
+// (Local DB credentials are used by default when env vars are not provided.)
 
 // Use Render's assigned port when present
 const PORT = process.env.PORT || 5002;
