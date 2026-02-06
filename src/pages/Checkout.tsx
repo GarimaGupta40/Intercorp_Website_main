@@ -6,6 +6,11 @@ import { CreditCard, Truck, Landmark, Wallet, CheckCircle2, Smartphone, Tag } fr
 import { saveOrder, Order, hasActiveCoupon, useLoyaltyCoupon, checkLoyaltyStatus } from '../data/products';
 import { api } from '../utils/api';
 
+declare global {
+  interface Window { Razorpay: any }
+}
+
+
 export default function Checkout() {
   const { items, clearCart } = useCart();
   const navigate = useNavigate();
@@ -87,8 +92,6 @@ export default function Checkout() {
       navigate('/shop');
       return;
     }
-
-    setIsPlacingOrder(true);
     
     const orderId = 'ORD-' + Math.random().toString(36).substr(2, 6).toUpperCase();
     const finalTotal = currentTotal - discount;
@@ -109,10 +112,63 @@ export default function Checkout() {
       })),
       total: finalTotal,
       discount: discount,
-      paymentMethod: 'Cash on Delivery',
+     paymentMethod: paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment',
       status: 'Pending',
       date: new Date().toISOString()
     };
+
+// ===== ONLINE PAYMENT =====
+if (paymentMethod !== 'cod') {
+  try {
+    const response = await fetch("/api/payment/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount: finalTotal }),
+    });
+
+    const razorpayOrder = await response.json();
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      amount: razorpayOrder.amount,
+      currency: "INR",
+      order_id: razorpayOrder.id,
+      name: "Intercorp Precision",
+      description: "Order Payment",
+
+      handler: async function (paymentResponse: any) {
+
+        const verifyRes = await fetch("/api/payment/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...paymentResponse, orderData: order }),
+        });
+
+        const verifyData = await verifyRes.json();
+
+        if (verifyData.success) {
+          setIsPlacingOrder(true);
+
+          setIsPlacingOrder(false);
+          navigate('/order-success', { state: { orderId } });
+        } else {
+          alert("Payment verification failed");
+        }
+      },
+
+      modal: { ondismiss: () => alert("Payment cancelled") },
+      theme: { color: "#2563eb" }
+    };
+
+    new window.Razorpay(options).open();
+    return;
+  } catch (err) {
+    alert("Payment failed to start");
+    return;
+  }
+}
+
+
 
     try {
       await saveOrder(order);
@@ -193,9 +249,9 @@ export default function Checkout() {
               <div className="space-y-3">
                 {[
                   { id: 'cod', label: 'Cash on Delivery', icon: Wallet, desc: 'Pay when you receive the order', disabled: false },
-                  { id: 'card', label: 'Credit / Debit Card', icon: CreditCard, desc: 'Secure payment via gateway', disabled: true },
-                  { id: 'upi', label: 'UPI / QR', icon: Smartphone, desc: 'Instant payment via Apps', disabled: true },
-                  { id: 'net', label: 'Net Banking', icon: Landmark, desc: 'All major banks supported', disabled: true },
+                  { id: 'card', label: 'Credit / Debit Card', icon: CreditCard, desc: 'Secure payment via gateway', disabled: false },
+                  { id: 'upi', label: 'UPI / QR', icon: Smartphone, desc: 'Instant payment via Apps', disabled: false },
+                  { id: 'net', label: 'Net Banking', icon: Landmark, desc: 'All major banks supported', disabled: false },
                 ].map((m) => (
                   <label 
                     key={m.id} 
@@ -246,7 +302,18 @@ export default function Checkout() {
               </div>
               <button 
                 type="submit"
-                disabled={isPlacingOrder}
+               disabled={
+  isPlacingOrder ||
+  !shippingInfo.fullName ||
+  !shippingInfo.phone ||
+  !shippingInfo.house ||
+  !shippingInfo.area ||
+  !shippingInfo.city ||
+  !shippingInfo.state ||
+  !shippingInfo.pincode ||
+  !paymentMethod
+}
+
                 className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isPlacingOrder ? (
@@ -269,3 +336,4 @@ export default function Checkout() {
     </div>
   );
 }
+

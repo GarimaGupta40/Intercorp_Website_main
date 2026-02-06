@@ -3,6 +3,10 @@ import cors from 'cors';
 import pool from './db/db.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from "dotenv";
+import paymentRoutes from "./routes/payment.js";
+import verifyRoutes from "./routes/verifyPayment.js";
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,6 +17,10 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+
+// Razorpay payment routes
+app.use("/api/payment", paymentRoutes);
+app.use("/api/payment", verifyRoutes);
 
 import fs from 'fs/promises';
 
@@ -349,6 +357,7 @@ app.get(/.*/, (req, res) => {
 // Use Render's assigned port when present
 const PORT = process.env.PORT || 5002;
 const HOST = '0.0.0.0';
+
 
 app.listen(PORT, HOST, () => {
   console.log(`Server running on port ${PORT}`);

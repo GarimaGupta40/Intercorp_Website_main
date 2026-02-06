@@ -326,7 +326,7 @@ export default function Orders() {
                       <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Payment Info</h4>
                       <div className="text-sm">
                         <p className="text-gray-900 font-bold mb-1">Status: {selectedInvoice.status.toUpperCase()}</p>
-                        <p className="text-gray-600">Method: COD</p>
+                        <p className="text-gray-600">Method: {selectedInvoice.paymentMethod}</p>
                       </div>
                     </div>
                   </div>
