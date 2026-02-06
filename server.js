@@ -8,6 +8,14 @@ import paymentRoutes from "./routes/payment.js";
 import verifyRoutes from "./routes/verifyPayment.js";
 dotenv.config();
 
+function sqlDate(date = new Date()) {
+  return new Date(date)
+    .toISOString()
+    .slice(0, 19)
+    .replace('T', ' ');
+}
+
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -137,7 +145,8 @@ app.post('/api/:file', async (req, res) => {
               o.discount || 0,
               o.paymentMethod || '',
               o.status || 'Pending',
-              o.date || new Date().toISOString()
+              o.date ? sqlDate(o.date) : sqlDate()
+
             ]
           );
         }
@@ -159,7 +168,9 @@ app.post('/api/:file', async (req, res) => {
           data.discount || 0,
           data.paymentMethod || '',
           data.status || 'Pending',
-          data.date || new Date().toISOString()
+          sqlDate(data.date)
+ ? sqlDate(data.date) : sqlDate()
+
         ]
       );
       return res.json({ success: true, insertId: result.insertId });
@@ -172,7 +183,8 @@ app.post('/api/:file', async (req, res) => {
             `INSERT INTO reviews (reviewId, productId, userId, userName, rating, comment, date)
              VALUES (?, ?, ?, ?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment), date = VALUES(date)`,
-            [r.reviewId, r.productId, r.userId, r.userName, r.rating, r.comment, r.date]
+            [r.reviewId, r.productId, r.userId, r.userName, r.rating, r.comment,sqlDate(r.date)
+]
           );
         }
       } else {
@@ -196,7 +208,15 @@ app.post('/api/:file', async (req, res) => {
            ON DUPLICATE KEY UPDATE 
            name = VALUES(name), phone = VALUES(phone), lastOrder = VALUES(lastOrder), 
            totalOrders = VALUES(totalOrders), orderHistory = VALUES(orderHistory)`,
-          [cust.email, cust.name, cust.phone || '', cust.joinedAt || null, cust.lastOrder || null, cust.totalOrders || 0, JSON.stringify(cust.orderHistory || [])]
+          [
+  cust.email,
+  cust.name,
+  cust.phone || '',
+  cust.joinedAt ? sqlDate(cust.joinedAt) : sqlDate(),
+  cust.lastOrder ? sqlDate(cust.lastOrder) : null,
+  cust.totalOrders || 0,
+  JSON.stringify(cust.orderHistory || [])
+]
         );
       }
       return res.json({ success: true });
@@ -209,7 +229,8 @@ app.post('/api/:file', async (req, res) => {
           `INSERT INTO users (id, name, email, password, role, createdAt)
            VALUES (?, ?, ?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE name = VALUES(name), password = VALUES(password), role = VALUES(role), createdAt = VALUES(createdAt)`,
-          [u.id || null, u.name || null, u.email, u.password || null, u.role || 'user', u.createdAt || new Date().toISOString()]
+          [u.id || null, u.name || null, u.email, u.password || null, u.role || 'user', u.createdAt ? sqlDate(u.createdAt) : sqlDate()
+]
         );
       }
       return res.json({ success: true });
@@ -222,7 +243,8 @@ app.post('/api/:file', async (req, res) => {
           `INSERT INTO products (id, name, category, price, stock, expiryDate, image, description, rating, addedBy, addedAt, status)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE name = VALUES(name), category = VALUES(category), price = VALUES(price), stock = VALUES(stock), expiryDate = VALUES(expiryDate), image = VALUES(image), description = VALUES(description), rating = VALUES(rating), status = VALUES(status)`,
-          [p.id, p.name, p.category, p.price || 0, p.stock || 0, p.expiryDate || null, p.image || null, p.description || null, p.rating || 5.0, p.addedBy || null, p.addedAt || null, p.status || 'active']
+          [p.id, p.name, p.category, p.price || 0, p.stock || 0, p.expiryDate || null, p.image || null, p.description || null, p.rating || 5.0, p.addedBy || null, p.addedAt ? sqlDate(p.addedAt) : sqlDate()
+, p.status || 'active']
         );
       }
       return res.json({ success: true });
@@ -266,7 +288,8 @@ app.post('/api/:file', async (req, res) => {
       for (const a of arr) {
         await pool.execute(
           `INSERT INTO admin_activity (id, type, message, timestamp, icon) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE message = VALUES(message), timestamp = VALUES(timestamp), icon = VALUES(icon)`,
-          [a.id, a.type, a.message, a.timestamp || new Date().toISOString(), a.icon || null]
+          [a.id, a.type, a.message, a.timestamp ? sqlDate(a.timestamp) : sqlDate()
+, a.icon || null]
         );
       }
       return res.json({ success: true });
@@ -297,7 +320,8 @@ app.post('/api/admin/add-product', async (req, res) => {
       image: product.image,
       description: product.description,
       addedBy: product.addedBy || 'admin',
-      addedAt: new Date().toISOString(),
+      addedAt: sqlDate(),
+
       status: product.status || 'active'
     };
 
