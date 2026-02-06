@@ -1,6 +1,9 @@
 import express from "express";
 import crypto from "crypto";
 import pool from "../db/db.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const router = express.Router();
 
@@ -13,8 +16,16 @@ router.post("/verify", async (req, res) => {
       orderData
     } = req.body;
 
+    console.log('[PaymentVerify] Received verification request for order:', razorpay_order_id);
+
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      console.error('[PaymentVerify] Missing payment fields:', { razorpay_order_id, razorpay_payment_id, razorpay_signature });
       return res.status(400).json({ success: false, error: 'Missing payment fields' });
+    }
+
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      console.error('[PaymentVerify] RAZORPAY_KEY_SECRET not configured');
+      return res.status(500).json({ success: false, error: 'Server configuration error' });
     }
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -24,16 +35,23 @@ router.post("/verify", async (req, res) => {
       .update(body.toString())
       .digest("hex");
 
+    console.log('[PaymentVerify] Signature verification - Expected:', expectedSignature.substring(0, 20) + '...', 'Received:', razorpay_signature.substring(0, 20) + '...');
+
     if (expectedSignature !== razorpay_signature) {
-      return res.json({ success: false });
+      console.error('[PaymentVerify] Signature mismatch - Payment might be fraudulent');
+      return res.json({ success: false, error: 'Signature verification failed' });
     }
+
+    console.log('[PaymentVerify] Signature verified successfully');
 
     // Ensure we have order data to persist
     if (!orderData) {
+      console.error('[PaymentVerify] Missing order data in request');
       return res.status(400).json({ success: false, error: 'Missing order data' });
     }
 
     const order = orderData;
+    console.log('[PaymentVerify] Saving order to database:', order.id);
 
     // Try inserting with payment columns. If DB is missing those columns, fall back
     // to inserting without them and then add/update the payment columns.
@@ -61,8 +79,9 @@ router.post("/verify", async (req, res) => {
           razorpay_signature
         ]
       );
+      console.log('[PaymentVerify] Order saved with payment columns successfully');
     } catch (insErr) {
-      console.warn('Insert with payment columns failed, falling back:', insErr && insErr.code ? insErr.code : insErr);
+      console.warn('[PaymentVerify] Insert with payment columns failed, falling back:', insErr && insErr.code ? insErr.code : insErr.message);
 
       // Insert without payment-specific columns
       await pool.execute(
@@ -84,6 +103,7 @@ router.post("/verify", async (req, res) => {
           new Date().toISOString()
         ]
       );
+      console.log('[PaymentVerify] Order saved without payment columns, attempting to add columns');
 
       // Try to add payment columns (safe if they already exist will error)
       try {
@@ -91,9 +111,10 @@ router.post("/verify", async (req, res) => {
         await pool.execute(`ALTER TABLE orders ADD COLUMN razorpay_order_id VARCHAR(100) NULL`);
         await pool.execute(`ALTER TABLE orders ADD COLUMN razorpay_payment_id VARCHAR(100) NULL`);
         await pool.execute(`ALTER TABLE orders ADD COLUMN razorpay_signature VARCHAR(255) NULL`);
+        console.log('[PaymentVerify] Payment columns added to orders table');
       } catch (alterErr) {
         // If alter fails, log and continue — columns may already exist
-        console.warn('ALTER TABLE for payment columns failed or columns already exist:', alterErr && alterErr.code ? alterErr.code : alterErr);
+        console.log('[PaymentVerify] ALTER TABLE for payment columns skipped (columns likely exist):', alterErr && alterErr.code ? alterErr.code : alterErr.message);
       }
 
       // Update the inserted row to set payment status and razorpay ids if columns exist
@@ -108,16 +129,18 @@ router.post("/verify", async (req, res) => {
             order.id
           ]
         );
+        console.log('[PaymentVerify] Payment details updated successfully');
       } catch (updErr) {
-        console.warn('Failed to update payment columns after fallback insert:', updErr && updErr.code ? updErr.code : updErr);
+        console.warn('[PaymentVerify] Failed to update payment columns after fallback insert:', updErr && updErr.code ? updErr.code : updErr.message);
       }
     }
 
-    res.json({ success: true });
+    console.log('[PaymentVerify] Payment verification and order saving completed successfully');
+    res.json({ success: true, orderId: order.id });
 
   } catch (err) {
-    console.log(err);
-    res.json({ success: false });
+    console.error('[PaymentVerify] Error during payment verification:', err.message || err);
+    res.status(500).json({ success: false, error: err.message || 'Payment verification error' });
   }
 });
 

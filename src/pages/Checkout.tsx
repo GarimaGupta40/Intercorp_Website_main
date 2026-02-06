@@ -120,23 +120,41 @@ export default function Checkout() {
 // ===== ONLINE PAYMENT =====
 if (paymentMethod !== 'cod') {
   try {
+    console.log('[Checkout] Creating Razorpay order with amount:', finalTotal);
+    
     const response = await fetch("/api/payment/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amount: finalTotal }),
     });
 
+    if (!response.ok) {
+      console.error('[Checkout] Payment API error:', response.status, response.statusText);
+      alert(`Payment API error: ${response.status} ${response.statusText}`);
+      return;
+    }
+
     const razorpayOrder = await response.json();
+    console.log('[Checkout] Razorpay order response:', razorpayOrder);
+
+    if (!razorpayOrder.success || !razorpayOrder.orderId || !razorpayOrder.key) {
+      console.error('[Checkout] Invalid order response:', razorpayOrder);
+      alert(`Invalid order response: ${razorpayOrder.error || 'Missing required fields'}`);
+      return;
+    }
+
+    console.log('[Checkout] Opening Razorpay checkout with order:', razorpayOrder.orderId);
 
     const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      key: razorpayOrder.key,
       amount: razorpayOrder.amount,
-      currency: "INR",
-      order_id: razorpayOrder.id,
+      currency: razorpayOrder.currency,
+      order_id: razorpayOrder.orderId,
       name: "Intercorp Precision",
       description: "Order Payment",
 
       handler: async function (paymentResponse: any) {
+        console.log('[Checkout] Payment handler called with response:', paymentResponse);
 
         const verifyRes = await fetch("/api/payment/verify", {
           method: "POST",
@@ -145,25 +163,39 @@ if (paymentMethod !== 'cod') {
         });
 
         const verifyData = await verifyRes.json();
+        console.log('[Checkout] Verify response:', verifyData);
 
         if (verifyData.success) {
-          setIsPlacingOrder(true);
-
+          console.log('[Checkout] Payment verified successfully');
           setIsPlacingOrder(false);
           navigate('/order-success', { state: { orderId } });
         } else {
-          alert("Payment verification failed");
+          console.error('[Checkout] Payment verification failed:', verifyData);
+          alert("Payment verification failed: " + (verifyData.error || 'Unknown error'));
         }
       },
 
-      modal: { ondismiss: () => alert("Payment cancelled") },
+      prefill: {
+        name: shippingInfo.fullName,
+        email: userEmail,
+        contact: shippingInfo.phone
+      },
+
+      modal: { 
+        ondismiss: () => {
+          console.log('[Checkout] User cancelled payment');
+          alert("Payment cancelled");
+        }
+      },
       theme: { color: "#2563eb" }
     };
 
+    console.log('[Checkout] Initializing Razorpay with options:', { ...options, key: '[REDACTED]' });
     new window.Razorpay(options).open();
     return;
   } catch (err) {
-    alert("Payment failed to start");
+    console.error('[Checkout] Payment initialization error:', err);
+    alert(`Payment failed to start: ${err instanceof Error ? err.message : 'Unknown error'}`);
     return;
   }
 }
