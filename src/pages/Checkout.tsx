@@ -15,7 +15,7 @@ export default function Checkout() {
   const { items, clearCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
-  const [paymentMethod, setPaymentMethod] = useState('cod');
+  const [paymentMethod, setPaymentMethod] = useState('');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [discount, setDiscount] = useState(0);
   const userEmail = localStorage.getItem('userEmail') || '';

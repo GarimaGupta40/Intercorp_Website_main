@@ -94,6 +94,28 @@ function AppContent() {
     userRole: localStorage.getItem('userRole')
   });
 
+  // Clear login state on fresh page load (first visit in this session)
+  React.useLayoutEffect(() => {
+    if (!sessionStorage.getItem('app_initialized')) {
+      // First page load in this session - clear login state
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userName');
+      
+      // Mark this session as initialized
+      sessionStorage.setItem('app_initialized', 'true');
+      
+      // Update auth state
+      setAuthState({
+        isLoggedIn: false,
+        userRole: null
+      });
+      
+      console.log('[Auth] Fresh page load detected - login state cleared');
+    }
+  }, []);
+
   React.useEffect(() => {
     const handleAuthChange = () => {
       setAuthState({
