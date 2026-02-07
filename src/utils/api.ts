@@ -16,7 +16,17 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!response.ok) return { error: response.statusText };
+      if (!response.ok) {
+        // Try to parse JSON error body (preferred) otherwise return status text
+        try {
+          const errBody = await response.json();
+          // If server returned { error: 'msg' } or similar, forward it
+          if (errBody && (errBody.error || errBody.message)) return { error: errBody.error || errBody.message };
+          return { error: response.statusText };
+        } catch (e) {
+          return { error: response.statusText };
+        }
+      }
       return await response.json();
     } catch (error) {
       console.error(`Error posting to ${file}:`, error);

@@ -140,6 +140,9 @@ export default function Navbar() {
               <Link to="/shop" className="text-gray-600 hover:text-blue-600 hover:bg-white hover:shadow-sm px-4 py-2 rounded-full text-sm font-semibold transition-all">
                 Shop
               </Link>
+              <Link to="/contact" className="text-gray-600 hover:text-blue-600 hover:bg-white hover:shadow-sm px-4 py-2 rounded-full text-sm font-semibold transition-all">
+                Contact
+              </Link>
             </div>
           </div>
 
@@ -286,6 +289,7 @@ export default function Navbar() {
 
                 <Link to="/consumer-products" className="block px-4 py-3 text-gray-700 font-bold hover:bg-blue-50 rounded-xl" onClick={() => setIsMobileMenuOpen(false)}>Consumer Products</Link>
                 <Link to="/shop" className="block px-4 py-3 text-gray-700 font-bold hover:bg-blue-50 rounded-xl" onClick={() => setIsMobileMenuOpen(false)}>Shop</Link>
+                <Link to="/contact" className="block px-4 py-3 text-gray-700 font-bold hover:bg-blue-50 rounded-xl" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
               </div>
 
               <div className="px-4 pb-8 space-y-4">

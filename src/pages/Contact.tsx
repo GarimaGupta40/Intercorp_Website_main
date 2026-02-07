@@ -1,8 +1,12 @@
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
 import SectionHeader from '../components/SectionHeader';
+import { api } from '../utils/api';
 
 export default function Contact() {
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', subject: 'General Inquiry', message: '' });
+  const [status, setStatus] = useState({ loading: false, error: '', success: false });
   return (
     <div>
       <section className="py-20 bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -123,7 +127,36 @@ export default function Contact() {
               <div className="bg-white rounded-2xl shadow-xl p-8">
                 <h2 className="text-3xl font-bold text-gray-900 mb-6">Send Us a Message</h2>
 
-                <form className="space-y-6">
+                <form
+                  className="space-y-6"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setStatus({ loading: true, error: '', success: false });
+
+                    // Basic client validation
+                    if (!form.firstName || !form.email || !form.message) {
+                      setStatus({ loading: false, error: 'Please fill required fields', success: false });
+                      return;
+                    }
+
+                    const resp = await api.post('contact', {
+                      firstName: form.firstName,
+                      lastName: form.lastName,
+                      email: form.email,
+                      phone: form.phone,
+                      subject: form.subject,
+                      message: form.message,
+                    });
+
+                    if (resp && resp.success) {
+                      setForm({ firstName: '', lastName: '', email: '', phone: '', subject: 'General Inquiry', message: '' });
+                      setStatus({ loading: false, error: '', success: true });
+                      setTimeout(() => setStatus({ loading: false, error: '', success: false }), 4000);
+                    } else {
+                      setStatus({ loading: false, error: resp?.error || 'Submission failed', success: false });
+                    }
+                  }}
+                >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
@@ -133,6 +166,8 @@ export default function Contact() {
                         type="text"
                         id="firstName"
                         name="firstName"
+                        value={form.firstName}
+                        onChange={(e) => setForm(prev => ({ ...prev, firstName: e.target.value }))}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                         placeholder="John"
                       />
@@ -146,6 +181,8 @@ export default function Contact() {
                         type="text"
                         id="lastName"
                         name="lastName"
+                        value={form.lastName}
+                        onChange={(e) => setForm(prev => ({ ...prev, lastName: e.target.value }))}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                         placeholder="Doe"
                       />
@@ -160,6 +197,8 @@ export default function Contact() {
                       type="email"
                       id="email"
                       name="email"
+                      value={form.email}
+                      onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                       placeholder="john@example.com"
                     />
@@ -173,6 +212,8 @@ export default function Contact() {
                       type="tel"
                       id="phone"
                       name="phone"
+                      value={form.phone}
+                      onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value }))}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                       placeholder="+1 (555) 123-4567"
                     />
@@ -185,6 +226,8 @@ export default function Contact() {
                     <select
                       id="subject"
                       name="subject"
+                      value={form.subject}
+                      onChange={(e) => setForm(prev => ({ ...prev, subject: e.target.value }))}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     >
                       <option>General Inquiry</option>
@@ -204,16 +247,22 @@ export default function Contact() {
                       id="message"
                       name="message"
                       rows={6}
+                      value={form.message}
+                      onChange={(e) => setForm(prev => ({ ...prev, message: e.target.value }))}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
                       placeholder="Tell us about your inquiry..."
                     />
                   </div>
 
+                  {status.error && <p className="text-sm text-red-500">{status.error}</p>}
+                  {status.success && <p className="text-sm text-green-600">Message sent successfully.</p>}
+
                   <button
-                    type="button"
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
+                    type="submit"
+                    disabled={status.loading}
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl disabled:opacity-60"
                   >
-                    Send Message
+                    {status.loading ? 'Sending...' : 'Send Message'}
                   </button>
 
                   <p className="text-sm text-gray-500 text-center">

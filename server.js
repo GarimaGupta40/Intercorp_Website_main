@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import dotenv from "dotenv";
 import paymentRoutes from "./routes/payment.js";
 import verifyRoutes from "./routes/verifyPayment.js";
+import contactRoutes from "./routes/contact.js";
 dotenv.config();
 
 function sqlDate(date = new Date()) {
@@ -29,6 +30,8 @@ app.use(express.json());
 // Razorpay payment routes
 app.use("/api/payment", paymentRoutes);
 app.use("/api/payment", verifyRoutes);
+// Contact form route (must be registered before generic /api/:file handlers)
+app.use("/api/contact", contactRoutes);
 
 import fs from 'fs/promises';
 
@@ -197,6 +200,8 @@ app.post('/api/:file', async (req, res) => {
       }
       return res.json({ success: true });
     }
+
+    
 
     if (fileName === 'customer') {
       // Bulk update customers from array or single update
