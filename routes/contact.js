@@ -11,7 +11,8 @@ router.post('/', async (req, res) => {
   try {
     const { firstName, lastName, email, phone, subject, message } = req.body || {};
 
-    if (!firstName || !email || !message) {
+    // Validate required fields: firstName, lastName, email, message
+    if (!firstName || !lastName || !email || !message) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -20,15 +21,20 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Invalid email' });
     }
 
-    await pool.execute(
-      `INSERT INTO contact_messages (firstName, lastName, email, phone, subject, message, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [firstName, lastName || '', email, phone || '', subject || '', message, sqlDate()]
-    );
+    try {
+      await pool.execute(
+        `INSERT INTO contact_messages (firstName, lastName, email, phone, subject, message, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [firstName, lastName || '', email, phone || '', subject || '', message, sqlDate()]
+      );
+    } catch (dbErr) {
+      console.error('[Contact] MySQL error inserting message:', dbErr);
+      return res.status(500).json({ error: 'Database error' });
+    }
 
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (err) {
-    console.error('[Contact] Error saving message:', err);
-    res.status(500).json({ error: 'Failed to save contact message' });
+    console.error('[Contact] Unexpected error:', err);
+    return res.status(500).json({ error: 'Database error' });
   }
 });
 

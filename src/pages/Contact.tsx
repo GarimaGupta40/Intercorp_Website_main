@@ -133,8 +133,8 @@ export default function Contact() {
                     e.preventDefault();
                     setStatus({ loading: true, error: '', success: false });
 
-                    // Basic client validation
-                    if (!form.firstName || !form.email || !form.message) {
+                    // Basic client validation (require firstName, lastName, email, message)
+                    if (!form.firstName || !form.lastName || !form.email || !form.message) {
                       setStatus({ loading: false, error: 'Please fill required fields', success: false });
                       return;
                     }
